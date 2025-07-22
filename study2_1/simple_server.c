@@ -10,6 +10,21 @@
 #include <sys/poll.h>
 #include <sys/epoll.h>
 #define BUFF_SIZE 1024
+void* cli_pthread(void*arg){
+    int connfd=*(int *)arg;
+    while(1){
+        char buff[BUFF_SIZE];
+        memset(buff,0,sizeof(buff));
+        int count=recv(connfd,buff,BUFF_SIZE-1,0);
+        if(count==0){
+        printf("cli_close\n");
+        break;
+        }
+        printf("connfd:%d,context:%s\n",connfd, buff);
+    }
+    close(connfd);
+    
+}
 int main(){
 //准备地址结构
     struct sockaddr_in ser;
@@ -33,7 +48,8 @@ int main(){
         perror("listen");
         return -1;
     }
-//接受连接
+    while (1){
+        //接受连接
     struct sockaddr_in cli;
     socklen_t len=sizeof(cli);
     memset(&cli, 0, sizeof(cli)); // 清空客户端地址结构
@@ -42,14 +58,11 @@ int main(){
         perror("accept");
         return -1;
     }
-    printf("ip地址:%s,端口号:%d\n",inet_ntoa(cli.sin_addr),ntohs(cli.sin_port));
-    char buff[BUFF_SIZE];
-    memset(buff,0,sizeof(buff));
-    while(recv(connfd,buff,BUFF_SIZE-1,0)){
-        printf("%s\n",buff);
-    }
-    printf("cli_close\n");
-    close(connfd);
+    pthread_t th_id;
+    pthread_create(&th_id,NULL,cli_pthread,&connfd);
+    }//多线程处理accept
+    
+
     close(sock);
     return 0;
 }
