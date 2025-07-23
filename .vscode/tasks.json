@@ -7,9 +7,9 @@
             "command": "gcc",
             "args": [
                 "-g",
-                "study2_1/output/multi_io_poll.c",
+                "study2_1/output/multi_io_epoll.c",
                 "-o",
-                "study2_1/output/multi_io_poll",
+                "study2_1/output/multi_io_epoll",
                 "-lpthread"
             ],
             "group": {

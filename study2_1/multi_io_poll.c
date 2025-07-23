@@ -1,5 +1,4 @@
-//没有打印是因为没有加\n,具体去UC笔记中看，有记载关于printf的知识
-//deal_cli 函数中判断是否断开连接时写成else if(ret_recv=0)这个经典错误
+
 #include <sys/socket.h>
 #include <errno.h>
 #include <netinet/in.h>
