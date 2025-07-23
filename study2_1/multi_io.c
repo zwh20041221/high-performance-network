@@ -53,7 +53,7 @@ int main(){
                 if(recv(fd,&buf,buff_size-1,0)==-1){perror("recv");}
                 printf("ip:%s  port:%d  fd:%d  context:%s\n",inet_ntoa(cli_addr.sin_addr),ntohs(cli_addr.sin_port),fd,buf);
             }
-        }
-    }//有bug，当客户端断开连接后无限循环打印
+        }//有bug，当客户端断开连接后无限循环打印
+    }
     return 0;
 }
