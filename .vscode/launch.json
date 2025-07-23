@@ -5,7 +5,7 @@
             "name": "Debug multi_io",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/study2_1/output/multi_io",
+            "program": "${workspaceFolder}/study2_1/output/multi_io_poll",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/study2_1/output",
