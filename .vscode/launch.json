@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug simple_server",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/study2_1/simple_server",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/study2_1",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "preLaunchTask": "build"
+        }
+    ]
+}
