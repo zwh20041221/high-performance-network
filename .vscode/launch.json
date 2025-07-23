@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug simple_server",
+            "name": "Debug multi_io",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/study2_1/simple_server",
+            "program": "${workspaceFolder}/study2_1/output/multi_io",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/study2_1",
+            "cwd": "${workspaceFolder}/study2_1/output",
             "environment": [],
             "externalConsole": true,
             "MIMode": "gdb",

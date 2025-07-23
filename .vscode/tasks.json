@@ -7,9 +7,9 @@
             "command": "gcc",
             "args": [
                 "-g",
-                "study2_1/simple_server.c",
+                "study2_1/output/multi_io.c",
                 "-o",
-                "study2_1/simple_server",
+                "study2_1/output/multi_io",
                 "-lpthread"
             ],
             "group": {
