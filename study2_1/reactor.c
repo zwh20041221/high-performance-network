@@ -40,6 +40,7 @@ int recv_cb(int connfd){//通信套接字EPOLLIN就绪时响应，接收客户�
     int recv_count=recv(connfd,buf+index,BUF_LENGTH-index,0);
     if(recv_count==0){
         printf("connfd:%d disconnect\n",connfd);
+        close(connfd);//老生常谈，这里必须手动close掉，否则每次epoll执行时都会直接响应，导致无限循环打印disconnect
     }
     else if(recv_count<0){perror("recv");return -1;}
     else{
