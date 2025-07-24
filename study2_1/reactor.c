@@ -18,20 +18,26 @@ struct fd_item{
     int index;//记录已读取的长度
 };
 struct fd_item buffer[MAX_FD_NUM]={0};
+void add_interest_event(int connfd,int event){//专门进行epoll_ctl的add添加事件工作
+    struct epoll_event ev;
+    ev.data.fd=connfd;
+    ev.events=event;
+    epoll_ctl(epfd,EPOLL_CTL_ADD,connfd,&ev);//注册
+}
+void mod_interest_event(int connfd,int event){//专门进行epoll_ctl的mod修改事件工作
+    struct epoll_event ev;
+    ev.data.fd=connfd;
+    ev.events=event;
+    epoll_ctl(epfd,EPOLL_CTL_MOD,connfd,&ev);//修改感兴趣的事件
+}
 int accept_cb(int listenfd){//监听套接字EPOLLIN就绪时响应，连接新客户端，并将对应描述符注册到epoll上，在buffer数组新开一个元素负责该客户端的数据
     struct sockaddr_in cliaddr;
     memset(&cliaddr,0,sizeof(cliaddr));
-    
-    /*这里也埋下了一个雷，把结构体中的buf指针赋成了0，导致后续的recv：bad address*/
-    
     socklen_t cliaddr_len=sizeof(cliaddr);
     int connfd=accept(listenfd,(struct sockaddr*)&cliaddr,&cliaddr_len);//连接
     printf("connect done connfd:%d\n",connfd);
     if(connfd==-1){perror("accept");return -1;}
-    struct epoll_event ev;
-    ev.data.fd=connfd;
-    ev.events=EPOLLIN;
-    epoll_ctl(epfd,EPOLL_CTL_ADD,connfd,&ev);//注册
+    add_interest_event(connfd,EPOLLIN);
     buffer[connfd].fd=connfd;//为其配备专属buffer元素
 }
 int recv_cb(int connfd){//通信套接字EPOLLIN就绪时响应，接收客户端发来的数据
@@ -47,8 +53,14 @@ int recv_cb(int connfd){//通信套接字EPOLLIN就绪时响应，接收客户�
     buffer[connfd].index+=recv_count;
     printf("connfd:%d context:%s\n",connfd,buf);
     }
+    mod_interest_event(connfd,EPOLLOUT);//收到客户端来信后再发给客户端，所以recv后监测可写
 }
-//int send_cb();
+int send_cb(int connfd){
+    char*buf=buffer[connfd].buf;
+    int index=buffer[connfd].index;
+    int conut=send(connfd,buf,index,0);
+    mod_interest_event(connfd,EPOLLIN);//发送给客户端必须将监控可写事件修改为监控可读事件，否则epoll会一直监控到可写从而一直触发
+}
 int main(){
     struct sockaddr_in listenaddr;
     listenaddr.sin_family=AF_INET;
@@ -59,11 +71,8 @@ int main(){
     if(bind(listenfd,(struct sockaddr*)&listenaddr,sizeof(listenaddr))==-1){perror("bind");return -1;}
     if(listen(listenfd,LISTEN_MAX_FD)==-1){perror("listen");return -1;}
     epfd=epoll_create(5);
-    struct epoll_event ev;
+    add_interest_event(listenfd,EPOLLIN);
     struct epoll_event ready_list[MAX_FD_NUM];
-    ev.data.fd=listenfd;
-    ev.events=EPOLLIN;
-    epoll_ctl(epfd,EPOLL_CTL_ADD,listenfd,&ev);//首先把监听套接字注册上去
     buffer[listenfd].fd=listenfd;
     while(1){
     int ret_epoll=epoll_wait(epfd,ready_list,MAX_FD_NUM,-1);
@@ -71,7 +80,7 @@ int main(){
     for(int i=0;i<ret_epoll;i++){
         if(ready_list[i].data.fd==listenfd){accept_cb(listenfd);}
         else if(ready_list[i].events&EPOLLIN){recv_cb(ready_list[i].data.fd);}
-        //else if(ready_list[i].events&EPOLLOUT){send_cb;}
+        else if(ready_list[i].events&EPOLLOUT){send_cb(ready_list[i].data.fd);}
     }
 }
 close(listenfd);
