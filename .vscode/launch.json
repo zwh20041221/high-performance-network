@@ -2,10 +2,10 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug multi_io",
+            "name": "Debug reactor",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/study2_1/output/multi_io_epoll",
+            "program": "${workspaceFolder}/study2_1/output/reactor",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}/study2_1/output",
