@@ -14,10 +14,7 @@
 int epfd=0;
 struct fd_item{
     int fd;
-    char *buf;//限制长度读取最大长度为BUF_LENGTH
-
-    /*这里埋下了严重的雷，定义了一个野指针*/
-
+    char buf[BUF_LENGTH];//限制长度读取最大长度为BUF_LENGTH
     int index;//记录已读取的长度
 };
 struct fd_item buffer[MAX_FD_NUM]={0};
