@@ -11,7 +11,7 @@
 #include <sys/time.h>
 #define LISTEN_MAX_FD 10
 #define MAX_FD_NUM 10
-#define BUF_LENGTH 128
+#define BUF_LENGTH 1024
 typedef void (*RCALLBACK)(int);//定义一个函数指针类型，相当于模版
 int epfd=0;
 struct fd_item{//在fd，buf,index的基础上添加事件触发后调用的回调函数
@@ -33,12 +33,23 @@ struct fd_item{//在fd，buf,index的基础上添加事件触发后调用的回�
     //对于每一个来连接的新客户端，在accept后都及时给他一个专属的回调函数，只要事件一触发就调用回调
 };
 struct fd_item fd_infor_list[MAX_FD_NUM]={0};
+typedef struct fd_item connect_t;
+void http_response(connect_t*);
 void recv_cb(int);
 void send_cb(int);
 void errExit(const char*);
 void errExit(const char *msg) {// 自定义错误退出函数
     perror(msg);      // 打印错误信息 + errno 对应的描述
     exit(1); // 终止程序，返回失败状态码（通常为1）
+}
+void http_response(connect_t* conn){
+conn->windex = sprintf(conn->wbuf,
+    "HTTP/1.1 200 OK\r\n"
+    "Accept-Ranges: bytes\r\n"
+    "Content-Length: 78\r\n"
+    "Content-Type: text/html\r\n"
+    "Date: Sat, 06 Aug 2025 15:57:46 GMT\r\n\r\n"
+    "<html><head><title>zwh.king</title></head><body><h1>zwh</h1></body></html>\r\n\r\n");
 }
 void add_interest_event(int connfd,int event){//专门进行epoll_ctl的add添加事件工作
     struct epoll_event ev;
@@ -80,9 +91,7 @@ void recv_cb(int connfd){//通信套接字EPOLLIN就绪时响应，接收客户�
     mod_interest_event(connfd,EPOLLOUT);//收到客户端来信后再发给客户端，所以recv后监测可写
 }
 void send_cb(int connfd){
-    memcpy(fd_infor_list[connfd].wbuf,fd_infor_list[connfd].rbuf,fd_infor_list[connfd].rindex);
-    //功能就是把发来的全发过去
-    fd_infor_list[connfd].windex=fd_infor_list[connfd].rindex;
+    http_response(&fd_infor_list[connfd]);
     char*buf=fd_infor_list[connfd].wbuf;
     int index=fd_infor_list[connfd].windex;
     int count=send(connfd,buf,index,0);
