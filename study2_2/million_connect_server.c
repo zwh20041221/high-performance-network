@@ -1,3 +1,4 @@
+//在2_1的reactor.c的基础上实现百万连接
 #include <sys/socket.h>
 #include <errno.h>
 #include <netinet/in.h>

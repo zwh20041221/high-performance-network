@@ -7,9 +7,9 @@
             "command": "gcc",
             "args": [
                 "-g",
-                "study2_1/reactor.c",
+                "study2_2/mul_port_client_epoll.c",
                 "-o",
-                "study2_1/output/reactor",
+                "study2_2/output/mul_port_client_epoll",
                 "-lpthread"
             ],
             "group": {

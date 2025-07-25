@@ -2,13 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug reactor",
+            "name": "Debug million_connect_server",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/study2_1/output/reactor",
+            "program": "${workspaceFolder}/study2_2/output/mul_port_client_epoll",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/study2_1/output",
+            "cwd": "${workspaceFolder}/study2_2/output",
             "environment": [],
             "externalConsole": true,
             "MIMode": "gdb",
