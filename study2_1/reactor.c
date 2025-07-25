@@ -68,7 +68,7 @@ void accept_cb(int listenfd){//监听套接字EPOLLIN就绪时响应，连接新
     memset(&cliaddr,0,sizeof(cliaddr));
     socklen_t cliaddr_len=sizeof(cliaddr);
     int connfd=accept(listenfd,(struct sockaddr*)&cliaddr,&cliaddr_len);//连接
-    printf("connect done connfd:%d\n",connfd);
+    //printf("connect done connfd:%d\n",connfd);
     if(connfd==-1){errExit("accept");}
     add_interest_event(connfd,EPOLLIN);
     fd_infor_list[connfd].fd=connfd;//为其配备专属fd_infor_list元素,绑定上回调函数
@@ -89,7 +89,7 @@ void recv_cb(int connfd){//通信套接字EPOLLIN就绪时响应，接收客户�
     }
     else if(recv_count<0){errExit("recv");}
     else{
-    printf("recv from connfd:%d byte:%d context:%s current rbuf:%s\n",connfd,recv_count, buf+fd_infor_list[connfd].rindex,buf);
+    //printf("recv from connfd:%d byte:%d context:%s current rbuf:%s\n",connfd,recv_count, buf+fd_infor_list[connfd].rindex,buf);
     memcpy(fd_infor_list[connfd].wbuf,buf+index,recv_count);
     mod_interest_event(connfd,EPOLLOUT);//收到客户端来信后再发给客户端，所以recv后监测可写
     fd_infor_list[connfd].rindex+=recv_count;
@@ -103,7 +103,7 @@ void send_cb(int connfd){
     char*buf=fd_infor_list[connfd].wbuf;
     int index=fd_infor_list[connfd].windex;
     int count=send(connfd,buf,index,0);
-    printf("send byte:%d send to:%d context:%s current wbuf:%s\n",count,connfd,buf,buf);;
+    //printf("send byte:%d send to:%d context:%s current wbuf:%s\n",count,connfd,buf,buf);;
     if(count==-1){errExit("send");}
     mod_interest_event(connfd,EPOLLIN);
 
