@@ -9,8 +9,8 @@
 #include <sys/epoll.h>
 #include<stdlib.h>
 #include <sys/time.h>
-#define LISTEN_MAX_FD 10
-#define MAX_FD_NUM 10
+#define LISTEN_MAX_FD 1024
+#define MAX_FD_NUM 1024*128
 #define BUF_LENGTH 1024
 typedef void (*RCALLBACK)(int);//定义一个函数指针类型，相当于模版
 int epfd=0;
@@ -72,6 +72,10 @@ void accept_cb(int listenfd){//监听套接字EPOLLIN就绪时响应，连接新
     if(connfd==-1){errExit("accept");}
     add_interest_event(connfd,EPOLLIN);
     fd_infor_list[connfd].fd=connfd;//为其配备专属fd_infor_list元素,绑定上回调函数
+    memset(fd_infor_list[connfd].rbuf,0,BUF_LENGTH);
+    memset(fd_infor_list[connfd].wbuf,0,BUF_LENGTH);
+    fd_infor_list[connfd].rindex=0;
+    fd_infor_list[connfd].windex=0;
     fd_infor_list[connfd].recv_type.recv_callback=recv_cb;
     fd_infor_list[connfd].send_callback=send_cb;
 }
@@ -85,17 +89,21 @@ void recv_cb(int connfd){//通信套接字EPOLLIN就绪时响应，接收客户�
     }
     else if(recv_count<0){errExit("recv");}
     else{
-    fd_infor_list[connfd].rindex+=recv_count;
-    printf("connfd:%d byte:%d context:%s\n",connfd,recv_count, buf);
-    }
+    printf("recv from connfd:%d byte:%d context:%s current rbuf:%s\n",connfd,recv_count, buf+fd_infor_list[connfd].rindex,buf);
+    memcpy(fd_infor_list[connfd].wbuf,buf+index,recv_count);
     mod_interest_event(connfd,EPOLLOUT);//收到客户端来信后再发给客户端，所以recv后监测可写
+    fd_infor_list[connfd].rindex+=recv_count;
+    fd_infor_list[connfd].windex=recv_count;
+    }
+
 }
 void send_cb(int connfd){
-    http_response(&fd_infor_list[connfd]);
+    //http_response(&fd_infor_list[connfd]);
+
     char*buf=fd_infor_list[connfd].wbuf;
     int index=fd_infor_list[connfd].windex;
     int count=send(connfd,buf,index,0);
-    printf("send byte:%d send to:%d context:%s\n",count,connfd,buf);
+    printf("send byte:%d send to:%d context:%s current wbuf:%s\n",count,connfd,buf,buf);;
     if(count==-1){errExit("send");}
     mod_interest_event(connfd,EPOLLIN);
 
@@ -114,9 +122,9 @@ int main(){
     if(listen(listenfd,LISTEN_MAX_FD)==-1){errExit("listen");}
     epfd=epoll_create(5);
     add_interest_event(listenfd,EPOLLIN);
-    struct epoll_event ready_list[MAX_FD_NUM];
     fd_infor_list[listenfd].fd=listenfd;
     fd_infor_list[listenfd].recv_type.accept_callback=accept_cb;//将负责管理监听套接字信息的数组元素绑定上回调函数，只要监听套接字的事件一触发，就调用
+    struct epoll_event ready_list[MAX_FD_NUM]={0};
     while(1){
     int ret_epoll=epoll_wait(epfd,ready_list,MAX_FD_NUM,-1);
     if(ret_epoll==-1){errExit("epoll_wait");}
