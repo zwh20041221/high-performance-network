@@ -92,7 +92,7 @@ void recv_cb(int connfd){//通信套接字EPOLLIN就绪时响应，接收客户�
     }
     else if(recv_count<0){errExit("recv");}
     else{
-    //printf("recv from connfd:%d byte:%d context:%s current rbuf:%s\n",connfd,recv_count, buf+fd_infor_list[connfd].rindex,buf);
+    printf("recv from connfd:%d byte:%d context:%s current rbuf:%s\n",connfd,recv_count, buf+fd_infor_list[connfd].rindex,buf);
     memcpy(fd_infor_list[connfd].wbuf,buf+index,recv_count);
     mod_interest_event(connfd,EPOLLOUT);//收到客户端来信后再发给客户端，所以recv后监测可写
     fd_infor_list[connfd].rindex+=recv_count;
@@ -106,7 +106,7 @@ void send_cb(int connfd){
     char*buf=fd_infor_list[connfd].wbuf;
     int index=fd_infor_list[connfd].windex;
     int count=send(connfd,buf,index,0);
-    //printf("send byte:%d send to:%d context:%s current wbuf:%s\n",count,connfd,buf,buf);;
+    printf("send byte:%d send to:%d context:%s current wbuf:%s\n",count,connfd,buf,buf);;
     if(count==-1){errExit("send");}
     mod_interest_event(connfd,EPOLLIN);
 
@@ -114,19 +114,28 @@ void send_cb(int connfd){
     否则epoll会一直监控到可写从而一直触发
     */
 }
-int main(){
+
+int init_server(int port){
     struct sockaddr_in listenaddr;
     listenaddr.sin_family=AF_INET;
-    listenaddr.sin_port=htons(8888);
+    listenaddr.sin_port=htons(port);
     listenaddr.sin_addr.s_addr=INADDR_ANY;
     int listenfd=socket(AF_INET,SOCK_STREAM,0);
     if(listenfd==-1){errExit("socket");}
     if(bind(listenfd,(struct sockaddr*)&listenaddr,sizeof(listenaddr))==-1){errExit("bind");}
     if(listen(listenfd,LISTEN_MAX_FD)==-1){errExit("listen");}
+    return listenfd;
+}
+int main(){
+    int port_count=20;
+    unsigned short port=8888;
     epfd=epoll_create(5);
-    add_interest_event(listenfd,EPOLLIN);
-    fd_infor_list[listenfd].fd=listenfd;
-    fd_infor_list[listenfd].recv_type.accept_callback=accept_cb;//将负责管理监听套接字信息的数组元素绑定上回调函数，只要监听套接字的事件一触发，就调用
+    for(int i=0;i<port_count;i++){
+        int listenfd=init_server(port+i);//创建20个监听socket，每一个都注册到epoll兴趣表中，都添加到管理监听套接字信息的数组中
+        add_interest_event(listenfd,EPOLLIN);
+        fd_infor_list[listenfd].fd=listenfd;
+        fd_infor_list[listenfd].recv_type.accept_callback=accept_cb;//将负责管理监听套接字信息的数组元素绑定上回调函数，只要监听套接字的事件一触发，就调用
+    }
     struct epoll_event ready_list[MAX_FD_NUM]={0};
     while(1){
     int ret_epoll=epoll_wait(epfd,ready_list,MAX_FD_NUM,-1);
@@ -141,7 +150,7 @@ int main(){
         else if(ready_list[i].events&EPOLLOUT){fd_infor_list[connfd].send_callback(connfd);}
     }
 }
-close(listenfd);
+//close(listenfd);
 close(epfd);
     return 0;
 }
