@@ -11,29 +11,8 @@
 #include <sys/time.h>
 #include"kvstore.h"
 #define LISTEN_MAX_FD 1024
-#define MAX_FD_NUM 1024*128
-#define BUF_LENGTH 1024
-typedef void (*RCALLBACK)(int);//定义一个函数指针类型，相当于模版
 int epfd=0;
 static int total_connections = 0;//连接计数
-struct fd_item{//在fd，buf,index的基础上添加事件触发后调用的回调函数
-    int fd;
-    char rbuf[BUF_LENGTH];//只负责处理读数据
-    int rindex;
-    char wbuf[BUF_LENGTH];//只负责处理写数据
-    int windex;
-
-        /*就是因为fd_item中有每个fd注册事件触发后的回调函数，
-        不同类型的fd在不同事件触发时调用不同的回调函数，
-        这些回调函数在fd生成时就进行绑定初始化*/
-
-    union{
-    RCALLBACK accept_callback;//监听套接字绑定
-    RCALLBACK recv_callback;//通信套接字绑定
-    }recv_type;//epollin触发后的回调
-    RCALLBACK send_callback;//epollout触发后的回调
-    //对于每一个来连接的新客户端，在accept后都及时给他一个专属的回调函数，只要事件一触发就调用回调
-};
 struct fd_item fd_infor_list[MAX_FD_NUM]={0};
 typedef struct fd_item connect_t;
 void http_response(connect_t*);
@@ -93,7 +72,8 @@ void recv_cb(int connfd){//通信套接字EPOLLIN就绪时响应，接收客户�
     }
     else if(recv_count<0){errExit("recv");}
     else{
-        kv_request(buf+index);
+        kv_request(&fd_infor_list[connfd],buf+index);
+        mod_interest_event(connfd,EPOLLOUT);
     }
 
 }
@@ -102,8 +82,8 @@ void send_cb(int connfd){
 
     char*buf=fd_infor_list[connfd].wbuf;
     int index=fd_infor_list[connfd].windex;
-    int count=send(connfd,buf,index,0);
-    printf("send byte:%d send to:%d context:%s current wbuf:%s\n",count,connfd,buf,buf);;
+    int count=send(connfd,buf,BUF_LENGTH,0);
+    printf("send to:%d context:%s current wbuf:%s\n",connfd,buf,buf);;
     if(count==-1){errExit("send");}
     mod_interest_event(connfd,EPOLLIN);
 
