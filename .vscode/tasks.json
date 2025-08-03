@@ -1,3 +1,28 @@
+// {
+//     "version": "2.0.0",
+//     "tasks": [
+//         {
+//             "label": "build",
+//             "type": "shell",
+//             "command": "gcc",
+//             "args": [
+//                 "-g",
+//                 "study2_1/reactor.c",
+//                 "-o",
+//                 "study2_1/output/reactor",
+//                 "-lpthread"
+//             ],
+//             "group": {
+//                 "kind": "build",
+//                 "isDefault": true
+//             },
+//             "problemMatcher": ["$gcc"]
+//         }
+//     ]
+// }
+
+//上面是单文件编译，下面是多文件编译
+
 {
     "version": "2.0.0",
     "tasks": [
@@ -6,12 +31,16 @@
             "type": "shell",
             "command": "gcc",
             "args": [
+                "study_kvstore/kvstore.c",
+                "study_kvstore/epoll_mode.c",
                 "-g",
-                "study2_2/mul_port_client_epoll.c",
                 "-o",
-                "study2_2/output/mul_port_client_epoll",
+                "study_kvstore/kvstore_server",
                 "-lpthread"
             ],
+            // "options": {
+            //     "cwd": "${workspaceFolder}/study_kvstore"
+            // },
             "group": {
                 "kind": "build",
                 "isDefault": true

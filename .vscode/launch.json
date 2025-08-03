@@ -2,15 +2,23 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug million_connect_server",
+            "name": "Debug",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/study2_2/output/mul_port_client_epoll",
+            "program": "${workspaceFolder}/study_kvstore/kvstore_server",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/study2_2/output",
+            "cwd": "${workspaceFolder}/study_kvstore",
             "environment": [],
-            "externalConsole": true,
+            "externalConsole": false,
+            /*当你设置 "externalConsole": false 时，
+            VS Code 会在内置终端里运行和调试你的程序，不会弹出新的外部终端窗口。
+            如果设置为 true，调试器会尝试打开一个新的外部终端窗口（比如 xterm、gnome-terminal 等）。
+            在某些 Linux 环境下，外部终端可能无法正常弹出、权限不足、或 SSH 远程开发时无法打开外部窗口，
+            导致调试器无法正常启动或连接，表现为“一直在转圈”。
+            总结：
+            "externalConsole": false 让调试过程全部在 VS Code 内部进行，避免了外部终端相关的兼容性和权限问题，
+            所以调试可以正常启动。*/
             "MIMode": "gdb",
             "preLaunchTask": "build"
         }
